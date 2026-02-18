@@ -1,3 +1,4 @@
+
 # Smart Water Management System
 ## Solapur Municipal Corporation
 
@@ -207,3 +208,6 @@ Solapur Municipal Corporation
 ---
 
 **Note**: This is a development project. Production deployment requires additional security measures, environment configuration, and testing.
+
+# smart-water-management-system
+ 088299785fd2a591e10f20f947c0584991138998
