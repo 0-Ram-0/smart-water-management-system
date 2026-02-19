@@ -7,7 +7,8 @@ const socketIo = require('socket.io');
 require('dotenv').config();
 
 const db = require('./config/database');
-// Load models to ensure they're initialized
+
+// Load models
 require('./models');
 
 const authRoutes = require('./routes/auth');
@@ -33,88 +34,82 @@ const io = socketIo(server, {
   }
 });
 
+
+// =======================
 // Middleware
+// =======================
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Database Connection
-// db.authenticate()
-//   .then(() => {
-//     console.log('✅ PostgreSQL database connected successfully');
-//   })
-//   .catch(err => {
-//     console.error('❌ Unable to connect to database:', err);
-//   });
-// Database Connection + Auto Sync
-// db.authenticate()
-//   .then(() => {
-//     console.log('✅ PostgreSQL database connected successfully');
-//     return db.sync({ alter: true });  // 🔥 This creates tables
-//   })
-//   .then(() => {
-//     console.log('✅ Database synced successfully (tables created)');
-//   })
-//   .catch(err => {
-//     console.error('❌ Unable to connect or sync database:', err);
-//   });
-db.authenticate()
-  .then(async () => {
-    console.log('✅ PostgreSQL database connected successfully');
-    await db.sync({ force: true });
-    console.log('✅ Database synced successfully');
-  })
-  .catch(err => {
-    console.error('❌ Unable to connect or sync database:', err);
-  });
 
-
-
-// Socket.IO Connection
+// =======================
+// Socket.IO
+// =======================
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
-  
-  // Join room based on user role (if authenticated)
+
   socket.on('join_room', (room) => {
     socket.join(room);
     console.log(`Client ${socket.id} joined room: ${room}`);
   });
-  
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
 });
 
-// Make io available to routes
 app.set('io', io);
 
-// Initialize alert service
+
+// =======================
+// Services Initialization
+// =======================
 const AlertService = require('./services/alertService');
 const alertService = new AlertService(io);
 app.set('alertService', alertService);
 
-// Initialize sensor simulator
 const SensorSimulator = require('./services/sensorSimulator');
 const sensorSimulator = new SensorSimulator(io, alertService);
 app.set('sensorSimulator', sensorSimulator);
 
-// Start sensor simulation (runs every 5 minutes)
-if (process.env.ENABLE_SENSOR_SIMULATION !== 'false') {
-  sensorSimulator.start(5); // 5 minute intervals
-}
 
-// Health Check
+// =======================
+// Database Connect + Sync
+// =======================
+(async () => {
+  try {
+    await db.authenticate();
+    console.log('✅ PostgreSQL database connected successfully');
+
+    await db.sync();
+    console.log('✅ Database synced successfully');
+
+    // Start simulator ONLY AFTER DB is ready
+    if (process.env.ENABLE_SENSOR_SIMULATION !== 'false') {
+      sensorSimulator.start(5);
+      console.log('🚀 Sensor simulator started (after DB sync)');
+    }
+
+  } catch (err) {
+    console.error('❌ Unable to connect or sync database:', err);
+  }
+})();
+
+
+// =======================
+// Routes
+// =======================
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     message: 'Smart Water Management System API',
     timestamp: new Date().toISOString()
   });
 });
 
-// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/engineer', engineerRoutes);
@@ -129,19 +124,24 @@ app.use('/api/engineers', engineerManagementRoutes);
 app.use('/api/tanks', tankRoutes);
 app.use('/api/sources', sourceRoutes);
 
-// 404 Handler
+
+// =======================
+// 404 + Error Handling
+// =======================
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    message: process.env.NODE_ENV === 'development'
+      ? err.message
+      : 'Something went wrong'
   });
 });
+
 
 const PORT = process.env.PORT || 5000;
 
