@@ -23,7 +23,8 @@ const DMA = sequelize.define('DMA', {
     }
   },
   geom: {
-    type: DataTypes.GEOMETRY('POLYGON', 4326),
+    type: DataTypes.DataTypes.JSON
+('POLYGON', 4326),
     allowNull: true,
     comment: 'PostGIS geometry for DMA boundary'
   }

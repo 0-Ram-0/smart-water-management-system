@@ -24,10 +24,11 @@ const Pipeline = sequelize.define('Pipeline', {
     field: 'diameter_mm'
   },
   geom: {
-    type: DataTypes.GEOMETRY('LINESTRING', 4326),
-    allowNull: true,
-    comment: 'PostGIS geometry for pipeline line'
-  }
+  type: DataTypes.JSON,
+  allowNull: true,
+  comment: 'Pipeline coordinates stored as GeoJSON'
+}
+
 }, {
   tableName: 'pipelines',
   timestamps: false,

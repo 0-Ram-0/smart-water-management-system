@@ -41,10 +41,10 @@ const Sensor = sequelize.define('Sensor', {
     allowNull: true
   },
   geom: {
-    type: DataTypes.GEOMETRY('POINT', 4326),
-    allowNull: true,
-    comment: 'PostGIS geometry for sensor location'
-  },
+  type: DataTypes.JSON,
+  allowNull: true,
+  comment: 'Sensor location stored as GeoJSON'
+},
   status: {
     type: DataTypes.TEXT,
     allowNull: true,
