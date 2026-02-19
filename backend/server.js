@@ -41,13 +41,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Database Connection
+// db.authenticate()
+//   .then(() => {
+//     console.log('✅ PostgreSQL database connected successfully');
+//   })
+//   .catch(err => {
+//     console.error('❌ Unable to connect to database:', err);
+//   });
+// Database Connection + Auto Sync
 db.authenticate()
   .then(() => {
     console.log('✅ PostgreSQL database connected successfully');
+    return db.sync({ alter: true });  // 🔥 This creates tables
+  })
+  .then(() => {
+    console.log('✅ Database synced successfully (tables created)');
   })
   .catch(err => {
-    console.error('❌ Unable to connect to database:', err);
+    console.error('❌ Unable to connect or sync database:', err);
   });
+
+
 
 // Socket.IO Connection
 io.on('connection', (socket) => {
