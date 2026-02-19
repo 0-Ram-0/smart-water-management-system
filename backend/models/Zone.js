@@ -14,9 +14,9 @@ const Zone = sequelize.define('Zone', {
     field: 'zone_name'
   },
   geom: {
-    type: DataTypes.GEOMETRY('POLYGON', 4326),
+    type: DataTypes.JSON,   // 🔥 changed from GEOMETRY to JSON
     allowNull: true,
-    comment: 'PostGIS geometry for zone boundary'
+    comment: 'Polygon coordinates stored as GeoJSON'
   }
 }, {
   tableName: 'zones',
