@@ -84,17 +84,15 @@ app.set('sensorSimulator', sensorSimulator);
     await db.authenticate();
     console.log('✅ PostgreSQL database connected successfully');
 
-    await db.sync();
-    console.log('✅ Database synced successfully');
+    console.log('🚀 Using existing database (no sync)');
 
-    // Start simulator ONLY AFTER DB is ready
     if (process.env.ENABLE_SENSOR_SIMULATION !== 'false') {
       sensorSimulator.start(5);
-      console.log('🚀 Sensor simulator started (after DB sync)');
+      console.log('🚀 Sensor simulator started');
     }
 
   } catch (err) {
-    console.error('❌ Unable to connect or sync database:', err);
+    console.error('❌ Unable to connect to database:', err);
   }
 })();
 
